@@ -1,5 +1,6 @@
 library(ggplot2)
 
+
 plot_coord_system <- function(){
   # Build an x-y coord system
   
@@ -76,6 +77,34 @@ show_transformation <- function(matrix, vector){
   
 }
 
+animate <- function(matrix, vector){
+  
+  # Initiate constant to control animation speed
+  
+  # TODO need to make a matrix that gets scaled per change
+  # Split into rotation and scaling
+  speed <- 1
+  speed_matrix <- matrix(c(0.1, 0,
+                    0, 0.1), nrow =2, byrow = TRUE)
+  
+  # Set up loop to animate transformation
+  # Perform one tenth of the transformation, then loop
+  
+  for (x in 1:10) {
+    
+    # Scale matrix by speed
+    scaled_matrix <- (speed * x) * matrix
+    
+    print(scaled_matrix)
+    
+    # display transformation
+    print(show_transformation(scaled_matrix, vector) + labs(title=sprintf("Slide %s", x)))
+    
+    Sys.sleep(0)
+    
+  }
+
+}
 
   
   
