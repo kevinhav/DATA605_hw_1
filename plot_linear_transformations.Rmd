@@ -9,7 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Matrix transformations in R
+## Geometric transformation of shapes using matrix multiplication
+
+> Create a simple shape (like a square or triangle) using point plots in R. Implement R code to apply different transformations (scaling, rotation, reflection) to the shape by left multiplying a transformation matrix by each of the point vectors. Demonstrate these transformations through animated plots.
 
 ```{r}
 source('linear_transformation_viz.R')
@@ -37,6 +39,15 @@ shear <- matrix(c(1,0,
 mirror <- matrix(c(-1,0,
                     0,-1), nrow=2, byrow=TRUE)
 
+# Reflect across y axis
+reflect_y <- matrix(c(-1, 0,
+                      0, 1), nrow=2, byrow=TRUE)
+
+# Reflect across x axis
+reflect_x <- matrix(c(1,0,
+                      0,-1), nrow=2, byrow=TRUE)
+                
+
 ```
 
 
@@ -44,3 +55,86 @@ mirror <- matrix(c(-1,0,
 vector <- c(2, 2)
 animate(rotate_90, vector)
 ```
+
+## Matrix properties and decomposition
+
+### Prove that $AB\neBA$
+
+
+### Prove that $A^TA is always symmetric
+
+
+### Prove that the determinant of A^TA is non-negative
+
+
+### Image Singular Value Decomposition
+
+```{r}
+# Read a grayscale image
+
+# Factorize the image matrix A using svd()
+
+# Compress the image using top k singular values and vectors
+
+# Visualize the result
+
+```
+
+
+
+## Matrix rank, properties, and eigenspace
+
+### Determine the rank of the given matrix
+
+> Find the rank of matrix A
+
+```{r}
+# Determine the rank of A
+A <- matrix(c(2, 4, 1, 3,
+              -2, -3, 4, 1,
+              5, 6, 2, 8,
+              -1, -2, 3, 7), nrow=2, byrow=TRUE)
+
+
+```
+
+> Explain what the rank tells us about the linear independence of the rows and columns of A
+
+
+> Identify any linear dependencies among the rows or columns
+
+### Matrix rank boundaries
+
+> Given an $mxn$ matrix where $m>n$, determine the maximum and minimum possible rank, assuming that the matrix is non-zero.
+
+> Prove that the rank of a matrix equals the dimension of its row space (or column space). Provide an example to illustrate the concept.
+
+### Rank and row reduction
+
+> Determine the rank of matrix $B$. Perform a row reduction on matrix $B$ and describe how it helps in finding the rank. Discuss any special properties of matrix $B$ (e.g., is it a rank-deficient matrix?).
+
+```{r}
+B <- matrix(c(2, 5, 7,
+              4, 10, 14,
+              1, 2.5, 2.5), nrow=2, byrow=TRUE)
+```
+
+### Compute the eigenvalues and eigenvectors
+
+> Find the eigenvalues and eigenvectors of the matrix $A$.  Write out the characteristic polynomial and show your solution step by step. After finding the eigenvalues and eigenvectors, verify that the eigenvectors are linearly independent. If they are not, explain why.
+
+```{r}
+A <- matrix(c(3, 1, 2,
+              0, 5, 4,
+              0, 0, 2), nrow=2, byrow=TRUE)
+```
+
+### Diagonalization of matrix
+
+> Determine if matrix $A$ can be diagonalized. If it can, find the diagonal matrix and the matrix of eigenvectors that diagonalizes $A$.
+
+> Discuss the geometric interpretation of the eigenvectors and eigenvalues in the context of transformations. For instance, how does matrix  stretch, shrink, or rotate vectors in $\mathbb{R}^3$?
+
+## Project: Eigenfaces from the "Labeled Faces in the Wild" dataset
+
+

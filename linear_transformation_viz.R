@@ -105,6 +105,3 @@ animate <- function(matrix, vector){
   }
 
 }
-
-  
-  
