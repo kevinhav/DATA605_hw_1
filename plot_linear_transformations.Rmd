@@ -15,6 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 source('linear_transformation_viz.R')
+library(matlib)
 ```
 
 ```{r}
@@ -56,27 +57,179 @@ vector <- c(2, 2)
 animate(rotate_90, vector)
 ```
 
-## Matrix properties and decomposition
+```{r}
+# Create a cartesian coordinate system
+p <- plot_coord_system()
 
+
+interpolate_matrix_transformation <- function(vectors, frames, transformation_matrix){
+  
+  # Initialize an identity matrix to later interpolate
+  # This way we can interpolate any transformation matrix we want
+  i_matrix <- matrix(c(1, 0,
+                0, 1), nrow=2, byrow=TRUE)
+
+  # Init df to store transformed vectors
+  transformed_vectors <- data.frame()
+  
+  # For each animation frame
+  for (f in 1:frames){
+
+    scale <- f / frames
+    
+    # progressively interpolate the identify matrix
+    # and multiply by the transformation matrix
+    interpolation_matrix <- (1 - scale) * i_matrix +
+                          scale * transformation_matrix
+    
+    
+    # Use the now interpolated transformation matrix to calculate new points
+    transformed_shape <- vectors %*% interpolation_matrix
+    
+    # Get the new vectors and the frame they were created on
+    step_vectors <- as.data.frame(transformed_shape)
+    step_vectors$frame <- f
+    
+    # Append dataframe
+    transformed_vectors <- rbind(transformed_vectors, step_vectors)
+    
+  }
+  
+
+  colnames(transformed_vectors) <- c('x', 'y', 'frame')
+  
+  return(transformed_vectors)
+  
+}
+  
+
+# Create a "square"
+square <- data.frame(x=c(-1, 1, 1, -1),
+                     y=c(-1, -1, 1, 1))
+# Convert to matrix
+m <- as.matrix(square)
+
+# Set animation params
+frames <- 60
+scale <- seq(1, -1, length.out = frames)
+
+# Build dataframe of interpolated vectors
+transformed_vectors <- interpolate_matrix_transformation(m, frames, reflect_y)
+
+```
+
+```{r}
+# Build coordinate plot
+# and run the animation
+
+p_anim <- ggplot(transformed_vectors, aes(x=x, y=y)) +
+    geom_point(size = 4, aes(color=frame), shape = "square") +
+    geom_hline(yintercept = -10:10, color = "lightgray", linetype = "dotted") +  # Grid lines
+    geom_vline(xintercept = -10:10, color = "lightgray", linetype = "dotted") +  
+    geom_hline(yintercept = 0, color = "black", linetype = "solid", size = 1) +  # X-axis
+    geom_vline(xintercept = 0, color = "black", linetype = "solid", size = 1) +  # Y-axis
+    scale_x_continuous(breaks = -10:10) + 
+    scale_y_continuous(breaks = -10:10) +
+    coord_cartesian(xlim = c(-10, 10), ylim = c(-10, 10)) +
+    theme_minimal() +
+    theme(panel.grid = element_blank()) + transition_states(frame, transition_length = 1, state_length = 1) +
+    transition_states(frame, transition_length = 2, state_length = 1)
+
+print(p_anim)
+
+```
+
+
+## Matrix properties and decomposition
 ### Prove that $AB\neBA$
 
+Matrices do not enjoy the commutative multiplicative property, unlike arithmetic algebra.
+
+We can easily prove that $AB\neBA$ empirically with a few lines of R code.
+
+```{r}
+A <- matrix(c(1,2,3,
+              4,5,6,
+              7,8,9), nrow=3, byrow=TRUE)
+
+B <- matrix(c(1, 1, 1,
+              2, 2, 2,
+              3, 3, 3), nrow=3, byrow=TRUE)
+
+AB <- A%*%B
+
+BA <- B%*%B
+
+print(all.equal(AB, BA))
+
+```
 
 ### Prove that $A^TA is always symmetric
 
+A transpose of a matrix of rows $m$ and columns $n$ is simply re-ordering a matrix such that $A^T$ is composed of $n$ rows and $m$ columns. As such, the matrix maintains symmetry *with respect to the main diagonal*.
+
+Again, we can show this using a concrete example, even with a non-square matrix.
+
+```{r}
+
+S <- matrix(c('a', 'b', 'c', 'x',
+              'd', 'e', 'f', 'y',
+              'g', 'h', 'i', 'z'), nrow=3, byrow=TRUE)
+
+# transpose
+print(t(S))
+
+```
+As we can see, the main diagonal of $a,e,i$ is retained, demonstrating symmetry throughout the transpose.
 
 ### Prove that the determinant of A^TA is non-negative
+
+The determinant is the scaling factor by which vector space is expanded after a matrix transformation. A negative determinant would indicate a reflection, meaning vector space is "stretched" towards either or both the negative x and y axis (given a standard two dimensional coordinate system).
+
+Considering a two dimensional square matrix, $A=\begin{bmatrix}a&b\\c&d\end{bmatrix}$, we can calculate the determinant as $det|A| = A_{11}A_{22} - A_{12}A{21}$. Considering the transpose $A=\begin{bmatrix}a&b\\d&c\end{bmatrix}$, we can see that the transpose would not have any affect on this calculation given the commutative property of scalar multiplication; $det|A^T| = A^{T}_{11}A^{T}_{22} - A^{T}_{21}A^{T}{12}$.
+
+This is demonstrated in code below.
+
+```{r}
+A <- matrix(c(1, 2,
+              3, 4), nrow=2, byrow=TRUE)
+
+A_t <- t(A)
+
+print(det(A_t %*% A))
+```
 
 
 ### Image Singular Value Decomposition
 
 ```{r}
+library(magick)
+
 # Read a grayscale image
+image <- image_read('image.png')
+grey_image <- image_convert(image, colorspace = 'gray')
+
+image_matrix <- as.numeric(image_data(grey_image))
+
+dim(image_matrix) <- c(image_info(grey_image)$width, image_info(grey_image)$height)
 
 # Factorize the image matrix A using svd()
 
+svd_matrix <- svd(image_matrix)
+
 # Compress the image using top k singular values and vectors
 
+k <- 10
+
+compress_matrix <- svd_matrix$u[, 1:k] %*% diag(svd_matrix$d[1:k]) %*% t(svd_matrix$v[, 1:k])
+
 # Visualize the result
+
+compress_matrix_3d <- array(compress_matrix, dim = c(dim(compress_matrix)[1], dim(compress_matrix)[2], 3))
+
+compress_image <- image_read(compress_matrix_3d)
+
+print(image_append(c(grey_image, compress_image)))
 
 ```
 
@@ -88,30 +241,53 @@ animate(rotate_90, vector)
 
 > Find the rank of matrix A
 
+*Note: we assume A is a coefficient matrix, not an augmented matrix in this example.*
+
+In linear algebra, **rank** refers to the number of dimensions affected by a matrix transformation. If a matrix transforms all dimensions of a vector space, it is said to be **full rank**.
+
+We calculate rank by performing Gaussian elimination to get the matrix into reduced row echelon form. From there, the number of pivot columns is equivalent to the rank.
+
 ```{r}
 # Determine the rank of A
 A <- matrix(c(2, 4, 1, 3,
               -2, -3, 4, 1,
               5, 6, 2, 8,
-              -1, -2, 3, 7), nrow=2, byrow=TRUE)
+              -1, -2, 3, 7), nrow=4, byrow=TRUE)
 
+A_rref <- echelon(A)
+
+print(A_rref)
 
 ```
 
+In this case, we can say that the rank of $A$ is four.
+
 > Explain what the rank tells us about the linear independence of the rows and columns of A
 
+A is full rank, as all four dimensions unique and therefore all our dimensions are linearly independent (as we have no free dimensions). 
 
 > Identify any linear dependencies among the rows or columns
+
+If we saw any rows or columns that were strictly all zeroes, we could consider them to be free or linearly dependent, meaning they can be any value and our system of equations will hold true. There are none in this case.
+
 
 ### Matrix rank boundaries
 
 > Given an $mxn$ matrix where $m>n$, determine the maximum and minimum possible rank, assuming that the matrix is non-zero.
+
+A matrix with more rows than columns indicate that we 
+
+We cannot have a higher rank than we have dimensions, so the maximum rank is $r_{max}\le n$
+
+If the matrix is non-zero, the smallest it could possibly be is $1x1$, which represents a rank of one. Therefore, rank must also be $r_{min}=1$.
 
 > Prove that the rank of a matrix equals the dimension of its row space (or column space). Provide an example to illustrate the concept.
 
 ### Rank and row reduction
 
 > Determine the rank of matrix $B$. Perform a row reduction on matrix $B$ and describe how it helps in finding the rank. Discuss any special properties of matrix $B$ (e.g., is it a rank-deficient matrix?).
+
+
 
 ```{r}
 B <- matrix(c(2, 5, 7,
