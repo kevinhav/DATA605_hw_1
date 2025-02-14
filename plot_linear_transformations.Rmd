@@ -340,10 +340,65 @@ print(B_rref)
 
 > Find the eigenvalues and eigenvectors of the matrix $A$. Write out the characteristic polynomial and show your solution step by step. After finding the eigenvalues and eigenvectors, verify that the eigenvectors are linearly independent. If they are not, explain why.
 
+$$
+A =\begin{bmatrix}
+3&1&2\\
+0&5&4\\
+0&0&2
+\end{bmatrix}
+$$ 
+
+First we perform row operations to get the row reduced echelon form of $A$
+
+$$ 
+\begin{align}
+
+\begin{bmatrix}
+3&1&2\\
+0&5&4\\
+0&0&2
+\end{bmatrix} \to -4R_1 + R_2
+
+\begin{bmatrix}3&1&2\\0&1&4\\0&0&2\end{bmatrix} \\
+
+-R_2 + R_1 \to
+
+\begin{bmatrix}3&0&-2\\0&1&4\\0&0&2\end{bmatrix} \\
+
+R_1 + R_3 \to
+
+\begin{bmatrix}3&0&0\\0&1&4\\0&0&2\end{bmatrix} \\
+
+\frac{1}{3}R_1 \to
+
+\begin{bmatrix}1&0&0\\0&1&4\\0&0&2\end{bmatrix} \\
+
+-2R_3 + R_2 \to
+
+\begin{bmatrix}1&0&0\\0&1&0\\0&0&2\end{bmatrix} \\
+
+\frac{1}{2}R_3 \to
+\begin{bmatrix}1&0&0\\0&1&0\\0&0&1\end{bmatrix}
+\end{align}
+$$
+In this case matrix $A$ can reduce to the identity matrix. We now determine the characteristic polynomial by calculating $p_A(x)=det(A-xI_3)$
+
+$$
+p_A(\lambda)=det(A-\lambda I_3) = det(\begin{bmatrix}1-\lambda&0&0\\0&1-\lambda&0\\0&0&1-\lambda\end{bmatrix})
+$$
+We have a diagonal matrix, so we can calculate the determinant as the product of its diagonal; $p_A(\lambda)=(1-x)(1-x)(1-x)$.
+
+This is also our characteristic polynomial, and as expected, the eigenvalues are 1, which we would expect of any identity matrix.
+
+Our eigenvectors can then be defined as $A\overrightarrow{x} = \lambda \overrightarrow{x}$. Since our matrix $A$ is an identity matrix, we can say $\overrightarrow{x} = \lambda \overrightarrow{x}$. Finally, since we have found $\lambda = 1$, we can say $\overrightarrow{x}=\overrightarrow{x}$, which is the same as saying that any vector of A is an eigenvector.
+
+Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.
+
 ```{r}
 A <- matrix(c(3, 1, 2,
               0, 5, 4,
-              0, 0, 2), nrow=2, byrow=TRUE)
+              0, 0, 2), nrow=3, byrow=TRUE)
+
 ```
 
 ### Diagonalization of matrix
