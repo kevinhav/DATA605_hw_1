@@ -388,11 +388,11 @@ p_A(\lambda)=det(A-\lambda I_3) = det(\begin{bmatrix}1-\lambda&0&0\\0&1-\lambda&
 $$
 We have a diagonal matrix, so we can calculate the determinant as the product of its diagonal; $p_A(\lambda)=(1-x)(1-x)(1-x)$.
 
-This is also our characteristic polynomial, and as expected, the eigenvalues are 1, which we would expect of any identity matrix.
+This is also our characteristic polynomial, and as expected, the eigenvalues are 1, which we would expect of any identity matrix. Since the eigenvalue of $1$ appears three times in our characteristic polynomial, we can also state the algebraic multiplicity is three.
 
 Our eigenvectors can then be defined as $A\overrightarrow{x} = \lambda \overrightarrow{x}$. Since our matrix $A$ is an identity matrix, we can say $\overrightarrow{x} = \lambda \overrightarrow{x}$. Finally, since we have found $\lambda = 1$, we can say $\overrightarrow{x}=\overrightarrow{x}$, which is the same as saying that any vector of A is an eigenvector.
 
-Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.
+Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.This means they span all of space for the dimensionx
 
 ```{r}
 A <- matrix(c(3, 1, 2,
@@ -407,4 +407,61 @@ A <- matrix(c(3, 1, 2,
 
 > Discuss the geometric interpretation of the eigenvectors and eigenvalues in the context of transformations. For instance, how does matrix stretch, shrink, or rotate vectors in $\mathbb{R}^3$?
 
-## Project: Eigenfaces from the "Labeled Faces in the Wild" dataset
+## Project: Eigenfaces from the "Labeled Faces in the Wild" dataset 
+
+I sampled four images from the dataset due to drive space, but the below code can be scaled to fit any number of images.
+
+```{r}
+library(magick)
+
+# List all image files
+image_files <- list.files(path = "lfw/", 
+                         pattern = "\\.(jpg)$",
+                         full.names = TRUE)
+
+# Read images into a vector using magick
+image_vector <- lapply(image_files, image_read)
+
+# Combine to list for easy bulk processing
+#image_list <- do.call(c, image_vector)
+
+# Initialize list instead of vector for matrices
+matrix_vector <- list()  
+
+for(i in seq_along(image_vector)){
+  
+  # Convert to greyscale
+  image <- image_convert(image_vector[[i]], colorspace = 'gray')
+  
+  # Resize image
+  image <- image_scale(image, '64')
+  
+  # Convert to numerical matrix
+  image_matrix <- as.numeric(image_data(image))
+  
+  # Add to list
+  matrix_vector[[i]] <- image_matrix
+}
+```
+
+
+```{r}
+
+```
+
+
+
+Preprocess the Images:
+
+    Convert the images to grayscale and resize them to a smaller size (e.g., 64x64) to reduce computational complexity.
+    Flatten each image into a vector.
+
+Apply PCA:
+
+    Compute the PCA on the flattened images.
+    Determine the number of principal components required to account for 80% of the variability.
+
+Visualize Eigenfaces:
+
+    Visualize the first few eigenfaces (principal components) and discuss their significance.
+    Reconstruct some images using the computed eigenfaces and compare them with the original images.
