@@ -437,16 +437,22 @@ for(i in seq_along(image_vector)){
   image <- image_scale(image, '64')
   
   # Convert to numerical matrix
-  image_matrix <- as.numeric(image_data(image))
+  num_vector <- c(as.numeric(image_data(image)))
   
   # Add to list
-  matrix_vector[[i]] <- image_matrix
+  matrix_vector[[i]] <- num_vector
 }
 ```
 
 
 ```{r}
+library("FactoMineR")
 
+for(i in matrix_vector){
+  
+  i.pca <- princomp(i)
+  i.summ <- summary(i.pca)
+}
 ```
 
 
