@@ -328,7 +328,7 @@ print(identical(r,nrow(A_t)))
 # Initialize matrix
 B <- matrix(c(2, 5, 7,
               4, 10, 14,
-              1, 2.5, 2.5), nrow=2, byrow=TRUE)
+              1, 2.5, 2.5), nrow=3, byrow=TRUE)
 
 # 
 B_rref <- echelon(B)
