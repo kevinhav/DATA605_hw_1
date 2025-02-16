@@ -392,7 +392,7 @@ This is also our characteristic polynomial, and as expected, the eigenvalues are
 
 Our eigenvectors can then be defined as $A\overrightarrow{x} = \lambda \overrightarrow{x}$. Since our matrix $A$ is an identity matrix, we can say $\overrightarrow{x} = \lambda \overrightarrow{x}$. Finally, since we have found $\lambda = 1$, we can say $\overrightarrow{x}=\overrightarrow{x}$, which is the same as saying that any vector of A is an eigenvector.
 
-Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.This means they span all of space for the dimensionx
+Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.This means they span all of their dimensional space
 
 ```{r}
 A <- matrix(c(3, 1, 2,
@@ -407,55 +407,7 @@ A <- matrix(c(3, 1, 2,
 
 > Discuss the geometric interpretation of the eigenvectors and eigenvalues in the context of transformations. For instance, how does matrix stretch, shrink, or rotate vectors in $\mathbb{R}^3$?
 
-## Project: Eigenfaces from the "Labeled Faces in the Wild" dataset 
-
-I sampled four images from the dataset due to drive space, but the below code can be scaled to fit any number of images.
-
-```{r}
-library(magick)
-
-# List all image files
-image_files <- list.files(path = "lfw/", 
-                         pattern = "\\.(jpg)$",
-                         full.names = TRUE)
-
-# Read images into a vector using magick
-image_vector <- lapply(image_files, image_read)
-
-# Combine to list for easy bulk processing
-#image_list <- do.call(c, image_vector)
-
-# Initialize list instead of vector for matrices
-matrix_vector <- list()  
-
-for(i in seq_along(image_vector)){
-  
-  # Convert to greyscale
-  image <- image_convert(image_vector[[i]], colorspace = 'gray')
-  
-  # Resize image
-  image <- image_scale(image, '64')
-  
-  # Convert to numerical matrix
-  num_vector <- c(as.numeric(image_data(image)))
-  
-  # Add to list
-  matrix_vector[[i]] <- num_vector
-}
-```
-
-
-```{r}
-library("FactoMineR")
-
-for(i in matrix_vector){
-  
-  i.pca <- princomp(i)
-  i.summ <- summary(i.pca)
-}
-```
-
-
+## Project: Eigenfaces from the "Labeled Faces in the Wild" dataset
 
 Preprocess the Images:
 
@@ -471,3 +423,142 @@ Visualize Eigenfaces:
 
     Visualize the first few eigenfaces (principal components) and discuss their significance.
     Reconstruct some images using the computed eigenfaces and compare them with the original images.
+
+
+I sampled four images from the dataset due to drive space, but the below code can be scaled to fit any number of images.
+
+We are essentially using `magick` to help with the image processing. We read each image in the directory, preprocess it into greyscale and downscale to 64x64, then get the numerica representation as a vector, storing each in a list. Then it is simple to use `prcomp` to calculate the PCA summary for us for each image.
+
+During my first attempts, I realized that some images had zero pixels. This meant we needed to perform some preprocessing to remove null elements so we could perform the PCA reliably. This is necessary, as during the covariance matrix computation, you'll get zero variance which causes issues with the standaridzation for the rest of the PCA computation. I used Claude AI to help refactor my code so that we could dynamically and elegantly handle images that had this issue.It suggested using `var_cols <- apply(mat, 2, var) > 0` to identify columns with non-zero variance, which I've implemented below.
+
+```{r}
+library(magick)
+
+# Read all iamges
+image_vector_list <- list.files(path = "lfw/", 
+                               pattern = "\\.(jpg)$",
+                               full.names = TRUE) |>
+  lapply(function(file) {
+    # Read each image
+    image_read(file) |>
+    # Convert to greyscale
+    image_convert(colorspace = 'gray') |>
+    # Rescale image
+    image_scale('64') |>
+    # Get numeric image data
+    image_data() |>
+    as.numeric()
+  })
+```
+
+
+```{r}
+# Perform PCA on each vector
+pca_list <- lapply(image_vector_list, function(image_vec) {
+    # Reshape vector to matrix
+    mat <- matrix(image_vec, nrow = 64, ncol = 64)
+    
+    # Check for columns with non-zero variance, otherwise we get error
+    var_cols <- apply(mat, 2, var) > 0
+    
+    # If there are any columns with variance
+    if(any(var_cols)) {
+        # Only perform PCA on columns with variance
+        mat_filtered <- mat[, var_cols, drop = FALSE]
+        pca_result <- prcomp(mat_filtered, center = TRUE, scale. = TRUE)
+        return(list(
+            pca = pca_result,
+            used_cols = which(var_cols)  # Keep track of which columns we used
+        ))
+    } else {
+        # Return NULL or some indicator if no variance in image
+        return(NULL)
+    }
+})
+
+# Remove any NULL results (images where PCA couldn't be performed)
+pca_list <- pca_list[!sapply(pca_list, is.null)]
+```
+
+With the PCA computed for each image, we can view the results and see for each how many princple components are need to explain more than 80% of the variability, by reviewing the `Cumulative Proportion` of each.
+
+```{r}
+# The first image needs PC5
+print(summary(pca_list[[1]]$pca))
+```
+```{r}
+# The second image needs PC 5 as well
+print(summary(pca_list[[2]]$pca))
+```
+
+```{r}
+# The third image only needs PC4
+print(summary(pca_list[[3]]$pca))
+```
+
+```{r}
+# The fourth image also only needs PC4
+print(summary(pca_list[[4]]$pca))
+```
+
+Now to visualize how much information we get at each principal component. 
+
+```{r}
+# Function to reconstruct image from n principal components
+reconstruct_image <- function(pca_result, n_components) {
+    # Get the eigenvectors for first n components
+    eigenvec <- pca_result$pca$rotation[, 1:n_components, drop = FALSE]
+    
+    # Get the scores for first n components
+    scores <- pca_result$pca$x[, 1:n_components, drop = FALSE]
+    
+    # Reconstruct using matrix multiplication
+    reconstructed <- scores %*% t(eigenvec)
+    
+    # Un-scale and un-center (reverse the standardization)
+    # Check if scale is TRUE/FALSE rather than a vector
+    if(!is.null(pca_result$pca$scale.) && pca_result$pca$scale.) {
+        reconstructed <- scale(reconstructed, 
+                             center = FALSE, 
+                             scale = 1/pca_result$pca$sdev[1:n_components])
+    }
+    
+    # Add back the center
+    if(!is.null(pca_result$pca$center)) {
+        reconstructed <- t(t(reconstructed) + pca_result$pca$center)
+    }
+    
+    # Create full-size image matrix
+    full_image <- matrix(0, nrow = 64, ncol = 64)
+    full_image[, pca_result$used_cols] <- reconstructed
+    
+    return(full_image)
+}
+
+# Get first image's PCA result
+first_pca <- pca_list[[1]]
+
+# Original image for comparison
+original_mat <- matrix(image_vector_list[[1]], nrow = 64, ncol = 64)
+
+# Set up plotting parameters
+par(mfrow = c(2,3))
+
+# Original
+image(original_mat, main = "Original")
+
+# Reconstructions with different numbers of PCs
+for(n_pc in c(1, 5, 10, 20, 50)) {
+    reconstructed <- reconstruct_image(first_pca, n_pc)
+    image(reconstructed, 
+          main = paste("Using", n_pc, "PCs"))
+}
+
+# Calculate reconstruction error
+for(n_pc in c(1, 5, 10, 20, 50)) {
+    reconstructed <- reconstruct_image(first_pca, n_pc)
+    mse <- mean((original_mat - reconstructed)^2)
+    print(paste(n_pc, "PCs:", round(mse, 6)))
+}
+```
+
