@@ -1,8 +1,9 @@
 ---
-title: "Untitled"
+title: "DATA605_hw_1"
 author: "Kevin Havis"
-date: "2025-01-29"
-output: html_document
+date: "2025-02-16"
+format: pdf
+
 ---
 
 ```{r setup, include=FALSE}
