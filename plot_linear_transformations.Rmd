@@ -9,18 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Geometric transformation of shapes using matrix multiplication
-
-> Create a simple shape (like a square or triangle) using point plots in R. Implement R code to apply different transformations (scaling, rotation, reflection) to the shape by left multiplying a transformation matrix by each of the point vectors. Demonstrate these transformations through animated plots.
-
 ```{r}
-source('linear_transformation_viz.R')
 library(matlib)
 library(gganimate)
 ```
 
-```{r}
+## Geometric transformation of shapes using matrix multiplication
 
+> Create a simple shape (like a square or triangle) using point plots in R. Implement R code to apply different transformations (scaling, rotation, reflection) to the shape by left multiplying a transformation matrix by each of the point vectors. Demonstrate these transformations through animated plots.
+
+We'll first start by identifying some common two dimensional transformations, such as rotation and shears. By representing these transformations as matrices, we'll be able to use any of these in our upcoming animation function.
+
+```{r}
 # Rotate 90 degrees counter clockwise
 rotate_90 <- matrix(c(1,0,
                       0,-1), nrow=2, byrow=TRUE)
@@ -48,20 +48,16 @@ reflect_y <- matrix(c(-1, 0,
 # Reflect across x axis
 reflect_x <- matrix(c(1,0,
                       0,-1), nrow=2, byrow=TRUE)
-                
 
 ```
 
-```{r}
-vector <- c(2, 2)
-animate(rotate_90, vector)
-```
+We'll now build the transformation and animations. To properly animate, we need to interpolate through the transformation matrix, performing partial transformations until the entire transformation is complete.
+
+We will do this by establishing a frame rate, looping through the transformation, and incrementing the transformation by the current frame for each loop. Mathematically, we are using the value of the current frame as a scalar by which we scale the transformation matrix, incrementing each loop by adding it back to the transformation matrix.
+
+We calculate and store these intermediate values in a dataframe to make it easy to animate later.
 
 ```{r}
-# Create a cartesian coordinate system
-p <- plot_coord_system()
-
-
 interpolate_matrix_transformation <- function(vectors, frames, transformation_matrix){
   
   # Initialize an identity matrix to later interpolate
@@ -94,15 +90,15 @@ interpolate_matrix_transformation <- function(vectors, frames, transformation_ma
     transformed_vectors <- rbind(transformed_vectors, step_vectors)
     
   }
-  
-
+  # names the dataframe columns
   colnames(transformed_vectors) <- c('x', 'y', 'frame')
-  
   return(transformed_vectors)
-  
 }
-  
+```
 
+Now with our function defined, we'll define a "square" as a matrix of vector points and build the dataframe containing all the incremental vector values we'll need in order to animate.
+
+```{r}
 # Create a "square"
 square <- data.frame(x=c(-1, 1, 1, -1),
                      y=c(-1, -1, 1, 1))
@@ -117,6 +113,8 @@ scale <- seq(1, -1, length.out = frames)
 transformed_vectors <- interpolate_matrix_transformation(m, frames, reflect_y)
 
 ```
+
+Finally, we'll plot a simple x-y coordinate system to display the transformation upon.
 
 ```{r}
 # Build coordinate plot
