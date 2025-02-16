@@ -348,6 +348,16 @@ A =\begin{bmatrix}
 \end{bmatrix}
 $$ 
 
+Steps:
+1. Determine characteristic polynomial as $p_A(\lambda)=det(A-\lambda I_3)$
+2. Note the algebraic multiplicity of the characteristic polynomial
+3. Solve the polynomial for all values of $\lambda$
+4. Per value of $\lambda$, calculate $(A- \lambda I)\overrightarrow{v}=0$
+5. Row reduce each $(A- \lambda I)$ to help find the free variables
+6. Solve the row reduced matrix as a system of equations to determine one vector of eigenspace by setting up $(A - \lambda I)\vec{v} = \vec{0}$
+7. Repeat for each value of lambda; the linear combination of the resulting eigen vectors describes eigenspace
+8. Test if eigenspace is linearly independent; if all our eigenvalues are distinct, we can say they are linearly independent. If we have repeated eigenvalues, we should test by confirming the determinant of the eigenvectors is non-zero
+
 First we perform row operations to get the row reduced echelon form of $A$
 
 $$ 
@@ -386,19 +396,22 @@ In this case matrix $A$ can reduce to the identity matrix. We now determine the 
 $$
 p_A(\lambda)=det(A-\lambda I_3) = det(\begin{bmatrix}1-\lambda&0&0\\0&1-\lambda&0\\0&0&1-\lambda\end{bmatrix})
 $$
+
 We have a diagonal matrix, so we can calculate the determinant as the product of its diagonal; $p_A(\lambda)=(1-x)(1-x)(1-x)$.
 
 This is also our characteristic polynomial, and as expected, the eigenvalues are 1, which we would expect of any identity matrix. Since the eigenvalue of $1$ appears three times in our characteristic polynomial, we can also state the algebraic multiplicity is three.
 
 Our eigenvectors can then be defined as $A\overrightarrow{x} = \lambda \overrightarrow{x}$. Since our matrix $A$ is an identity matrix, we can say $\overrightarrow{x} = \lambda \overrightarrow{x}$. Finally, since we have found $\lambda = 1$, we can say $\overrightarrow{x}=\overrightarrow{x}$, which is the same as saying that any vector of A is an eigenvector.
 
-Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.This means they span all of their dimensional space
+Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.This means they span all of their dimensional space, which in this case is $\mathbb{C}^3$. Due to this, we can also say that the geometric multiplicity is also three, as by definition it is equivalent to the dimensions of eigenspace.
 
 ```{r}
 A <- matrix(c(3, 1, 2,
               0, 5, 4,
               0, 0, 2), nrow=3, byrow=TRUE)
 
+eigen(A)
+echelon(A)
 ```
 
 ### Diagonalization of matrix
