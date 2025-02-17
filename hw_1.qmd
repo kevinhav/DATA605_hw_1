@@ -1,5 +1,5 @@
 ---
-title: "DATA605_hw_1"
+title: "DATA 605 Homework 1"
 author: "Kevin Havis"
 date: "2025-02-16"
 format: pdf
@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+#| label: load-library
+#| output: False
 library(matlib)
 library(gganimate)
 library(pracma)
@@ -17,11 +19,11 @@ library(pracma)
 
 ## Geometric transformation of shapes using matrix multiplication
 
-> Create a simple shape (like a square or triangle) using point plots in
-> R. Implement R code to apply different transformations (scaling,
-> rotation, reflection) to the shape by left multiplying a
-> transformation matrix by each of the point vectors. Demonstrate these
-> transformations through animated plots.
+> *Create a simple shape (like a square or triangle) using point plots in*
+> *R. Implement R code to apply different transformations (scaling,*
+> *rotation, reflection) to the shape by left multiplying a*
+> *transformation matrix by each of the point vectors. Demonstrate these*
+> *transformations through animated plots.*
 
 We'll first start by identifying some common two dimensional
 transformations, such as rotation and shears. By representing these
@@ -29,6 +31,7 @@ transformations as matrices, we'll be able to use any of these in our
 upcoming animation function.
 
 ```{r}
+#| label: set-transformations
 # Rotate 90 degrees counter clockwise
 rotate_90 <- matrix(c(1,0,
                       0,-1), nrow=2, byrow=TRUE)
@@ -64,7 +67,10 @@ We calculate and store these intermediate values in a dataframe to make
 it easy to animate later.
 
 ```{r}
-interpolate_matrix_transformation <- function(vectors, frames, transformation_matrix){
+#| label: interpolate_func
+interpolate_matrix_transformation <- function(vectors,
+                                              frames,
+                                              transformation_matrix){
   
   # Initialize an identity matrix to later interpolate
   # This way we can interpolate any transformation matrix we want
@@ -107,6 +113,7 @@ vector points and build the dataframe containing all the incremental
 vector values we'll need in order to animate.
 
 ```{r}
+#| label: setup_animation
 # Create a "square"
 square <- data.frame(x=c(-1, 1, 1, -1),
                      y=c(-1, -1, 1, 1))
@@ -127,6 +134,7 @@ transformation upon.
 
 ```{r}
 #| eval: false
+#| label: run-animation
 # Build coordinate plot
 # and run the animation
 
@@ -155,7 +163,9 @@ See the full animation on my GitHub
 [here](https://github.com/kevinhav/DATA605_hw_1/blob/main/y_rotation.gif).
 
 ![Frame 1](square_transformation_1.png)
+
 ![Frame 30](square_transformation_2.png)
+
 ![Frame 60](square_transformation_3.png)
 
 ## Matrix properties and decomposition
@@ -169,6 +179,7 @@ We can easily prove that $AB \neq BA$ empirically with a few lines of R
 code.
 
 ```{r}
+#| label: commutative_prop
 A <- matrix(c(1,2,3,
               4,5,6,
               7,8,9), nrow=3, byrow=TRUE)
@@ -188,55 +199,49 @@ print(all.equal(AB, BA))
 
 ```
 
-### Prove that $A\^TA$ is always symmetric
+### Prove that $A^TA$ is always symmetric
 
-A transpose of a matrix of rows $m$ and columns $n$ is simply
-re-ordering a matrix such that $A^T$ is composed of $n$ rows and $m$
-columns. As such, the matrix maintains symmetry *with respect to the
-main diagonal*.
+A symmetric matrix is defined as being equal to its own transpose. To prove symmetry of $A^TA$, we must prove $(A^TA)^T = A^TA$, meaning that the tranpose of $A^TA$ equals itself if it is symmetric.
 
-Again, we can show this using a concrete example.
+We will show this using a concrete example.Let $B = A^TA$ for simpler notation, such that if B is symmetric, $B=B^T$.
 
 ```{r}
+#| label: transpose-symm
 # Initialize a matrix
-A <- matrix(c('a', 'b', 'c',
-              'd', 'e', 'f',
-              'g', 'h', 'i'), nrow=3, byrow=TRUE)
+A <- matrix(c(1, 2, 3,
+              4, 5, 6,
+              7, 8, 9), nrow=3, byrow=TRUE)
 
-# transpose
-print(t(A))
-
+# Calculate AᵀA
+B <- t(A) %*% A
+ 
+# Transpose should be equal
+print(all.equal(t(B), B))
 ```
 
-As we can see, the main diagonal of $a,e,i$ is retained, demonstrating
-symmetry throughout the transpose.
+As we can see, $A^TA$ is symmetric.
 
 ### Prove that the determinant of $A^TA$ is non-negative
 
-The determinant is the scaling factor by which vector space is expanded
-after a matrix transformation. A negative determinant would indicate a
-reflection, meaning vector space is "stretched" towards either or both
-the negative x and y axis (given a standard two dimensional coordinate
-system).
+Considering a two dimensional square matrix, $A=\begin{bmatrix}a&b\\c&d\end{bmatrix}$, we can calculate the
+product of its transpose $A^T=\begin{bmatrix}a&c\\b&d\end{bmatrix}$ as $A^TA=\begin{bmatrix}a^2+c^2&ab+cd\\ab+cd&b^2+d^2\end{bmatrix}$
 
-Considering a two dimensional square matrix,
-$A=\begin{bmatrix}a&b\\c&d\end{bmatrix}$, we can calculate the
-determinant as $det|A| = A_{11}A_{22} - A_{12}A_{21} = ad - bc$.
+When we express this as as the determinant, we end up simply with $det_A =(ad-bc)^2$. 
 
-Considering the transpose $A^T=\begin{bmatrix}a&c\\b&d\end{bmatrix}$, we
-can see that the determinant is non-negative given the commutative
-property of *scalar* multiplication as the term $bc$ and $cb$ are the
-same;
-$det|A^T| = A^{T}_{11}A^{T}_{22} - A^{T}_{21}A^{T}_{12} = ad - cb$.
+Since we are taking the square, the value of the determinant must be non-negative.
 
 This is demonstrated in code below.
 
 ```{r}
+#| label: transpose_proof
+# Initiate matrix
 A <- matrix(c(1, 2,
               3, 4), nrow=2, byrow=TRUE)
 
+# Transpose
 A_t <- t(A)
 
+# Show the transpose product determinant
 print(det(A_t %*% A))
 ```
 
@@ -249,7 +254,10 @@ red, green, and blue matrices, but we will work with a simpler greyscale
 image in this example.
 
 ```{r}
+#| label: svd-process
+#| warning: False
 library(magick)
+options(magick.info = FALSE)
 
 # Read a grayscale image
 image <- image_read('image.png')
@@ -264,42 +272,48 @@ dim(image_matrix) <- c(image_info(grey_image)$width, image_info(grey_image)$heig
 # Factorize the image matrix A using svd()
 svd_matrix <- svd(image_matrix)
 
-# Compress the image using top k singular values and vectors
-k <- 10
-compress_matrix <- svd_matrix$u[, 1:k] %*% diag(svd_matrix$d[1:k]) %*% t(svd_matrix$v[, 1:k])
+# Set up k values to test
+k_values <- c(30, 20, 10)
+compressed_images <- list()
 
-# Visualize the result
-compress_matrix_3d <- array(compress_matrix, dim = c(dim(compress_matrix)[1], dim(compress_matrix)[2], 3))
-compress_image <- image_read(compress_matrix_3d)
+# Loop through k values to create compressed images
+for(k in k_values) {
+    compress_matrix <- svd_matrix$u[, 1:k] %*% diag(svd_matrix$d[1:k]) %*% t(svd_matrix$v[, 1:k])
+    compress_matrix_3d <- array(compress_matrix, dim = c(dim(compress_matrix)[1], dim(compress_matrix)[2], 3))
+    img <- image_read(compress_matrix_3d)
+    img <- image_annotate(img, paste("k =", k), size = 30, color = "red")
+    compressed_images[[length(compressed_images) + 1]] <- img
+}
 
-print(image_append(c(grey_image, compress_image)))
+# Combine all images including original
+all_images <- c(grey_image, compressed_images)
+
+# Turn off metadata display and show combined images
+image_append(all_images)
 
 ```
+
+
+With increasing levels of $k$, we see that we retain more and more information in the compressed image.
 
 ## Matrix rank, properties, and eigenspace
 
 ### Determine the rank of the given matrix
 
-> Find the rank of matrix A
+> *Find the rank of matrix A*
+> $A = \begin{bmatrix}2&4&1&4\\-2&-3&4&1\\5&6&2&8\\-1&-2&3&7 \end{bmatrix}$
 
 *Note: we assume A is a coefficient matrix, not an augmented matrix in
 this example.*
 
-In linear algebra, **rank** refers to the number of dimensions affected
-by a matrix transformation. If a matrix transformation retains all
-dimensions of a vector space, it is said to be **full rank**. A lesser
-rank occurs when a matrix transformation forces vector space into a
-smaller dimension; for example, a cube to a plane, a plane to a line, or
-a line to a point.
+In linear algebra, **rank** of a matrix refers its number of dimensions. We compute this by converting the matrix to reduced row echelon form and counting the number of non-zero rows, or pivot positions.
 
-We calculate rank by first performing Gaussian elimination to get the
-matrix into reduced row echelon form. From there, the number of pivot
-columns is equivalent to the rank, as each pivot column represents
-linear independence for that given dimension.
+
 
 ```{r}
+#| label: matrix-rank
 # Determine the rank of A
-A <- matrix(c(2, 4, 1, 3,
+A <- matrix(c(2, 4, 1, 4,
               -2, -3, 4, 1,
               5, 6, 2, 8,
               -1, -2, 3, 7), nrow=4, byrow=TRUE)
@@ -310,57 +324,64 @@ print(A_rref)
 
 ```
 
-In this case, we can say that the rank of $A$ is four.
+In this case, we can say that the rank of $A$ is four given each column is a pivot column.
 
-> Explain what the rank tells us about the linear independence of the
-> rows and columns of A
+> *Explain what the rank tells us about the linear independence of the*
+> *rows and columns of A*
 
-A is full rank. As mentioned above, we have appropriate pivot values in
-each of our dimensions, which tells us the system is full rank and
-therefore linearly independent.
+If the smaller of the number of matrix's rows or columns is equal to its rank, it is said to be **full rank**. Given we have a square matrix of 4x4, and the rank is four, $A$ is indeed full rank.
 
-> Identify any linear dependencies among the rows or columns
+> *Identify any linear dependencies among the rows or columns*
 
-If we saw any rows or columns that were strictly all zeroes, we could
-consider them to be free variables, and as such, linearly
-dependent.There are none in this case.
+If we saw any zero rows or columns, we could consider them to be free variables, and as such, linearly
+dependent. Given we have four pivot positions, we can say there are no linear dependencies in this matrix.
 
 ### Matrix rank boundaries
 
-> Given an $mxn$ matrix where $m>n$, determine the maximum and minimum
-> possible rank, assuming that the matrix is non-zero.
+> *Given an $mxn$ matrix where $m>n$, determine the maximum and minimum*
+> *possible rank, assuming that the matrix is non-zero.*
 
 We cannot have a higher rank than we have dimensions, so the maximum
 rank is $r_{max}\le n$
 
-If the matrix is non-zero, the smallest it could possibly be is $1x1$.
+Given the matrix is non-zero, and $m>n$, the smallest it could possibly be is 2x1.
 Therefore, minimum rank must also be $r_{min}=1$.
 
-> Prove that the rank of a matrix equals the dimension of its row space
-> (or column space). Provide an example to illustrate the concept.
+> *Prove that the rank of a matrix equals the dimension of its row space*
+> *(or column space). Provide an example to illustrate the concept.*
 
 Given a linear system of equations $LS$ represented by matrix $A$ such
 that $LS(A)$;
 
 1.  A homogeneous system $LS(A, 0)$ is always consistent
+
 2.  The trivial ($0$) solution to $LS(A,0)$ is unique
+
 3.  The reduced row echelon form $B$ of an augmented matrix $A$ is row
     equivalent
+    
 4.  $B$ has pivot columns $r$ which must be less than or equal to the
     number of columns $n$
-5.  $r$ is equal to $n$ when the system has a unique solution
+    
+5.  $r=n$ when the system has a unique solution
+
 6.  $LS(A, 0)$ is consistent and has a unique solution, so for matrix
-    $A$, $r$ must be equal to $n$
+    $A$, $r=n$
+    
 7.  Rank of A $r(A)$ is equal to $r$, so $r(A) = r_A = A_n$
+
 8.  The transpose $A^T$ of matrix $A$ has rows $m$ and columns $n$ such
     that $A^{T}_{m} = A_n$
+    
 9.  The rank $r$ of a matrix is equal to the rank of the transpose, so
     $r_A = r_{A^T}$
-10. $r_A = A_m$, or $r_A = A_n$
+    
+10. Therefore, $r_A$ equals either $r_A = A_m$, or $r_A = A_n$
 
 Example given $4x_1 + 2x_2  = 0$ and $3x_1 + x2 = 0$
 
 ```{r}
+#| label: proof-rank
 # Initialize matrix A
 A <- matrix(c(4, 2,
               3, 1), nrow=2, byrow=TRUE)
@@ -383,20 +404,18 @@ print(identical(rank,nrow(A_t)))
 
 ### Rank and row reduction
 
-> Determine the rank of matrix $B$. Perform a row reduction on matrix
-> $B$ and describe how it helps in finding the rank. Discuss any special
-> properties of matrix $B$ (e.g., is it a rank-deficient matrix?).
+> *Determine the rank of matrix $B$. Perform a row reduction on matrix*
+> *$B$ and describe how it helps in finding the rank. Discuss any special*
+> *properties of matrix $B$ (e.g., is it a rank-deficient matrix?).*
+>$B= \begin{bmatrix}2&5&7\\4&10&14\\1&2.5&2.5 \end{bmatrix}$
 
 We can deduce the rank of $B$ by analyzing the number of dependent $D$
 and free $F$ variables.
 
-By reducing matrix $B$, we can examine its pivot columns. In this case,
-we can see that the first third columns have pivot values, while the
-second does not. This means the rank of $B$ is limited to two, the
-number of pivot columns. Given B is a 3x3 matrix, we can say that with a
-rank of two, it is rank-deficient (as opposed to full rank).
+By reducing matrix $B$, we can examine its pivot columns.
 
 ```{r}
+#| label: row-reduce
 # Initialize matrix
 B <- matrix(c(2, 5, 7,
               4, 10, 14,
@@ -408,12 +427,16 @@ B_rref <- echelon(B)
 print(B_rref)
 ```
 
+In this case, we can see that the first and third columns have pivot values, while the
+second does not. This means the rank of $B$ is limited to two. Given B is a 3x3 matrix, we can say that with a
+rank of two, it is rank-deficient (as opposed to full rank).
+
 ### Compute the eigenvalues and eigenvectors
 
-> Find the eigenvalues and eigenvectors of the matrix $A$. Write out the
-> characteristic polynomial and show your solution step by step. After
-> finding the eigenvalues and eigenvectors, verify that the eigenvectors
-> are linearly independent. If they are not, explain why.
+> *Find the eigenvalues and eigenvectors of the matrix $A$. Write out the*
+> *characteristic polynomial and show your solution step by step. After*
+> *finding the eigenvalues and eigenvectors, verify that the eigenvectors*
+> *are linearly independent. If they are not, explain why.*
 
 $$
 A =\begin{bmatrix}
@@ -431,33 +454,44 @@ make up our eigenspace.
 Detailed steps below. We will use the `pracma` and `matlib` packages to
 help with the computations.
 
-Steps: 1. Determine characteristic polynomial as $p_A(\lambda)=det(A-\lambda I_3)$
+Steps:
+1. Determine characteristic polynomial as $p_A(\lambda)=det(A-\lambda I_3)$
+
 2. Solve the roots of the polynomial for all values of $\lambda$
-3. Note the algebraic multiplicity of the
-characteristic polynomial 
-4. Per value of $\lambda$, calculate $(A- \lambda I)\overrightarrow{v}=0$\
+
+3. Note the algebraic multiplicity of the characteristic polynomial 
+
+4. Per value of $\lambda$, calculate $(A- \lambda I)\overrightarrow{v}=0$
+
 5. Row reduce each $(A- \lambda I)$ to help find the free variables
-6. Solve the row reduced matrix as a
-system of equations to determine an eigenvector by setting up
+
+6. Solve the row reduced matrix as a system of equations to determine an eigenvector by setting up
 $(A - \lambda I)\vec{v} = \vec{0}$
+
 7. Repeat for each value of $\lambda$; the span of the resulting eigenvectors describe eigenspace
-8.Test if eigenspace is linearly independent; if all our eigenvalues are distinct, we can say they are linearly independent. If we have repeated eigenvalues, we should test by confirming the determinant of the
+
+8. Test if eigenspace is linearly independent; if all our eigenvalues are distinct, we can say they are linearly independent. If we have repeated eigenvalues, we should test by confirming the determinant of the
 eigenvectors is non-zero
+
 9. Check the dimensions of eigenspace todetermine geometric multiplicity
 
 ```{r}
+#| label: eigen-vec
 A <- matrix(c(3, 1, 2,
               0, 5, 4,
               0, 0, 2), nrow=3, byrow=TRUE)
 
 # Step 1 characteristic polynomial
 A_cp <- charpoly(A)
+print(A_cp)
 
 # Step 2 Eigenvalues as roots of the CP
 lambdas <- roots(A_cp)
+print(lambdas)
 
 # Step 3 Algebraic multiplicity
 alpha <- length(unique(lambdas))
+print(alpha)
 
 # Step 4 Calculate eigenvectors per eigen value
 # Note we are skipping to directly use the eigen() function for easier computation
@@ -467,25 +501,27 @@ print(eigen_A$values) # 5, 3, and 2, same as our polynomial roots
 
 # Step 5, 6, and 7 are done for us
 eigen_vec <- eigen_A$vectors
+print(eigen_vec)
 
 # Step 8 Test for linear independence by checking if any duplicates
 print(duplicated(eigen_A$values)) # No duplicates so linearly independent
 
 # Can validate by asserting the determinant of eigenspace is not zero
 eigen_det <- det(eigen_vec)
+print(eigen_det)
 
 
 # Step 9 The number of eigenvectors is our geometric multiplicity
 gamma <- ncol(eigen_vec)
-
-sprintf("Characteristic polynomial: %s", toString(A_cp))
-sprintf("Eigenvalues: %s", toString(lambdas))
-print("Eigenvectors:")
-print(eigen_vec)
-sprintf("Algebraic Multiplicity: %s", alpha)
-sprintf("Determinant of eigenspace: %s", eigen_det)
-sprintf("Geometric multiplicity: %s", gamma)
+print(gamma)
 ```
+
+- Characteristic polynomial: $x^3-10x^2 + 31x -30$
+- $\lambda = (5, 3, 2)$
+- $\lambda \vec{x} = \begin{bmatrix}0.4472136 & 1 & -0.3713907 \\ 0.8944272 & 0 & -0.7427814 \\ 0 & 0 & 0.5570860 \end{bmatrix}$
+- Algebraic multiplicity = 3
+- Determinant of eigen matrix = -0.49827 (i.e. non-zero)
+- Geometric mutiplicity = 3
 
 With our results, we can confirm our eigenvectors are linearly
 independent, as evidenced by the non-zero determinant of eigenspace as
@@ -493,8 +529,8 @@ well as the distinct eigenvectors themselves.
 
 ### Diagonalization of matrix
 
-> Determine if matrix $A$ can be diagonalized. If it can, find the
-> diagonal matrix and the matrix of eigenvectors that diagonalizes $A$.
+> *Determine if matrix $A$ can be diagonalized. If it can, find the*
+> *diagonal matrix and the matrix of eigenvectors that diagonalizes $A$.*
 
 As a square matrix, $A$ is considered diagonalizable if it is similar to
 a diagonal matrix. We would like to find some non-singular matrix $S$
@@ -506,23 +542,22 @@ can also state they are non-singular, and thus are appropriate to use
 for $S$.
 
 ```{r}
+#| label: matrix-symmetry
 # Initiate S as matrix of eigenvectors
 S <- eigen_vec
 
 # Calculate diagonal matrix of A
-
-A_diag <- solve(S)%*%A%*%S
+A_diag <- solve(S) %*% A %*% S
 
 print(A_diag)
-
 ```
 
 As we can see, A is indeed diagonalizable, giving us a lovely diagonal
 matrix with our eigenvalues as the main diagonal. Beautiful!
 
-> Discuss the geometric interpretation of the eigenvectors and
-> eigenvalues in the context of transformations. For instance, how does
-> matrix stretch, shrink, or rotate vectors in $\mathbb{R}^3$?
+> *Discuss the geometric interpretation of the eigenvectors and*
+> *eigenvalues in the context of transformations. For instance, how does*
+> *matrix stretch, shrink, or rotate vectors in $\mathbb{R}^3$?*
 
 Eigenvectors represent the span that is unaffected by a geometric
 transformation. Consider a three dimensional rotation in any $x$, $y$,
@@ -541,18 +576,18 @@ transformation.
 
 ## Project: Eigenfaces from the "Labeled Faces in the Wild" dataset
 
-> Preprocess the Images: Convert the images to grayscale and resize them
-> to a smaller size (e.g., 64x64) to reduce computational complexity.
-> Flatten each image into a vector.
+> *Preprocess the Images: Convert the images to grayscale and resize them*
+> *to a smaller size (e.g., 64x64) to reduce computational complexity.*
+> *Flatten each image into a vector.*
 
-> Apply PCA:\
-> Compute the PCA on the flattened images. Determine the number of
-> principal components required to account for 80% of the variability.
+> *Apply PCA:*
+> *Compute the PCA on the flattened images. Determine the number of*
+> *principal components required to account for 80% of the variability.*
 
-> Visualize Eigenfaces: Visualize the first few eigenfaces (principal
-> components) and discuss their significance. Reconstruct some images
-> using the computed eigenfaces and compare them with the original
-> images.
+> *Visualize Eigenfaces: Visualize the first few eigenfaces (principal*
+> *components) and discuss their significance. Reconstruct some images*
+> *using the computed eigenfaces and compare them with the original*
+> *images.*
 
 I sampled four images from the dataset due to drive space, but the below
 code can be scaled to fit any number of images.
@@ -575,6 +610,7 @@ so that we could dynamically and elegantly handle images that had this
 issue.
 
 ```{r}
+#| label: load-images
 library(magick)
 
 # Read all iamges
@@ -595,6 +631,7 @@ image_vector_list <- list.files(path = "lfw/",
 ```
 
 ```{r}
+#| label: perform-pca
 # Perform PCA on each vector
 pca_list <- lapply(image_vector_list, function(image_vec) {
     # Reshape vector to matrix
@@ -629,6 +666,7 @@ Considering the first image as an example, we can see that we need five
 principal components in order to get to our benchmark.
 
 ```{r}
+#| label: summarize-pca
 # The first image needs PC5
 print(summary(pca_list[[1]]$pca))
 ```
@@ -637,6 +675,7 @@ Now to visualize how much information we get at each principal
 component, we will reconstruct the images at a series of $n$ components.
 
 ```{r}
+#| label: rebuild-images
 # Function to reconstruct image from n principal components
 reconstruct_image <- function(pca_result, n_components) {
     # Get the eigenvectors for first n components
@@ -686,13 +725,6 @@ for(n_pc in c(1, 5, 10, 20, 50)) {
     image(reconstructed, 
           main = paste("Using", n_pc, "PCs"))
 }
-
-# Calculate reconstruction error
-for(n_pc in c(1, 5, 10, 20, 50)) {
-    reconstructed <- reconstruct_image(first_pca, n_pc)
-    mse <- mean((original_mat - reconstructed)^2)
-    print(paste(n_pc, "PCs:", round(mse, 6)))
-}
 ```
 
 Comparing this to the original image, we can see how the PCA helps us
@@ -700,6 +732,9 @@ identify the most important pixel values to retain the most visual
 information possible. Thanks Zorica!
 
 ```{r}
+#| label: print-image
+#| echo: false
+options(magick.info = FALSE)
 print(image_read('./lfw/Zorica_Radovic_0001.jpg'))
 ```
 
