@@ -110,6 +110,7 @@ transformed_vectors <- interpolate_matrix_transformation(m, frames, reflect_y)
 Finally, we'll plot a simple x-y coordinate system to display the transformation upon.
 
 ```{r}
+#| eval: false
 # Build coordinate plot
 # and run the animation
 
@@ -126,11 +127,16 @@ p_anim <- ggplot(transformed_vectors, aes(x=x, y=y)) +
     theme(panel.grid = element_blank()) +
     transition_states(frame, transition_length = 1, state_length = 1)
 
-# The GIF will not render in pdf; see it here
-print(p_anim)
+# The GIF will not render in pdf
+# print(p_anim)
 
 ```
 
+We can now view the animation in its entirely - a few still frames for PDF format below.
+
+![Frame 1](square_transformation_1.png)
+![Frame 30](square_transformation_2.png)
+![Frame 60](square_transformation_3.png)
 ## Matrix properties and decomposition
 
 ### Prove that $AB \neq BA$
@@ -150,7 +156,10 @@ B <- matrix(c(1, 1, 1,
 
 AB <- A%*%B
 
-BA <- B%*%B
+BA <- B%*%A
+
+print(AB)
+print(BA)
 
 print(all.equal(AB, BA))
 
