@@ -151,8 +151,7 @@ p_anim <- ggplot(transformed_vectors, aes(x=x, y=y)) +
     theme(panel.grid = element_blank()) +
     transition_states(frame, transition_length = 1, state_length = 1)
 
-# The GIF will not render in pdf
-# print(p_anim)
+print(p_anim)
 
 ```
 
