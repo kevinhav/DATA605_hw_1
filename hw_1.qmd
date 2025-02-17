@@ -27,14 +27,6 @@ We'll first start by identifying some common two dimensional transformations, su
 rotate_90 <- matrix(c(1,0,
                       0,-1), nrow=2, byrow=TRUE)
 
-# Rotate 180 degrees counter clockwise
-rotate_180 <- matrix(c(-1,0,
-                        0,1), nrow=2, byrow=TRUE)
-
-# Rotate 90 degrees clockwise
-rotate_270 <- matrix(c(0,1,
-                       1,0), nrow=2, byrow=TRUE)
-
 # Apply a right-ward shear
 shear <- matrix(c(1,0,
                   1,1), nrow=2, byrow=TRUE)
@@ -50,7 +42,6 @@ reflect_y <- matrix(c(-1, 0,
 # Reflect across x axis
 reflect_x <- matrix(c(1,0,
                       0,-1), nrow=2, byrow=TRUE)
-
 ```
 
 We'll now build the transformation and animations. To properly animate, we need to interpolate through the transformation matrix, performing partial transformations until the entire transformation is complete.
@@ -126,8 +117,8 @@ p_anim <- ggplot(transformed_vectors, aes(x=x, y=y)) +
     geom_point(size = 4, aes(color=frame), shape = "square") +
     geom_hline(yintercept = -10:10, color = "lightgray", linetype = "dotted") +  # Grid lines
     geom_vline(xintercept = -10:10, color = "lightgray", linetype = "dotted") +  
-    geom_hline(yintercept = 0, color = "black", linetype = "solid", size = 1) +  # X-axis
-    geom_vline(xintercept = 0, color = "black", linetype = "solid", size = 1) +  # Y-axis
+    geom_hline(yintercept = 0, color = "black", linetype = "solid", linewidth = 1) +  # X-axis
+    geom_vline(xintercept = 0, color = "black", linetype = "solid", linewidth = 1) +  # Y-axis
     scale_x_continuous(breaks = -10:10) + 
     scale_y_continuous(breaks = -10:10) +
     coord_cartesian(xlim = c(-10, 10), ylim = c(-10, 10)) +
@@ -135,6 +126,7 @@ p_anim <- ggplot(transformed_vectors, aes(x=x, y=y)) +
     theme(panel.grid = element_blank()) +
     transition_states(frame, transition_length = 1, state_length = 1)
 
+# The GIF will not render in pdf; see it here
 print(p_anim)
 
 ```
@@ -168,16 +160,16 @@ print(all.equal(AB, BA))
 
 A transpose of a matrix of rows $m$ and columns $n$ is simply re-ordering a matrix such that $A^T$ is composed of $n$ rows and $m$ columns. As such, the matrix maintains symmetry *with respect to the main diagonal*.
 
-Again, we can show this using a concrete example, even with a non-square matrix.
+Again, we can show this using a concrete example.
 
 ```{r}
-
-S <- matrix(c('a', 'b', 'c', 'x',
-              'd', 'e', 'f', 'y',
-              'g', 'h', 'i', 'z'), nrow=3, byrow=TRUE)
+# Initialize a matrix
+A <- matrix(c('a', 'b', 'c',
+              'd', 'e', 'f',
+              'g', 'h', 'i'), nrow=3, byrow=TRUE)
 
 # transpose
-print(t(S))
+print(t(A))
 
 ```
 
@@ -189,7 +181,7 @@ The determinant is the scaling factor by which vector space is expanded after a 
 
 Considering a two dimensional square matrix, $A=\begin{bmatrix}a&b\\c&d\end{bmatrix}$, we can calculate the determinant as $det|A| = A_{11}A_{22} - A_{12}A_{21} = ad - bc$.
 
-Considering the transpose $A^T=\begin{bmatrix}a&c\\b&d\end{bmatrix}$, we can see that the determinant is non-negative given the commutative property of scalar multiplication; $det|A^T| = A^{T}_{11}A^{T}_{22} - A^{T}_{21}A^{T}_{12} = ad - cb$.
+Considering the transpose $A^T=\begin{bmatrix}a&c\\b&d\end{bmatrix}$, we can see that the determinant is non-negative given the commutative property of *scalar* multiplication as the term $bc$ and $cb$ are the same; $det|A^T| = A^{T}_{11}A^{T}_{22} - A^{T}_{21}A^{T}_{12} = ad - cb$.
 
 This is demonstrated in code below.
 
@@ -213,24 +205,21 @@ library(magick)
 image <- image_read('image.png')
 grey_image <- image_convert(image, colorspace = 'gray')
 
+# Convert to vector
 image_matrix <- as.numeric(image_data(grey_image))
 
+# Set matrix dimension to those of the image
 dim(image_matrix) <- c(image_info(grey_image)$width, image_info(grey_image)$height)
 
 # Factorize the image matrix A using svd()
-
 svd_matrix <- svd(image_matrix)
 
 # Compress the image using top k singular values and vectors
-
 k <- 10
-
 compress_matrix <- svd_matrix$u[, 1:k] %*% diag(svd_matrix$d[1:k]) %*% t(svd_matrix$v[, 1:k])
 
 # Visualize the result
-
 compress_matrix_3d <- array(compress_matrix, dim = c(dim(compress_matrix)[1], dim(compress_matrix)[2], 3))
-
 compress_image <- image_read(compress_matrix_3d)
 
 print(image_append(c(grey_image, compress_image)))
@@ -266,7 +255,7 @@ In this case, we can say that the rank of $A$ is four.
 
 > Explain what the rank tells us about the linear independence of the rows and columns of A
 
-A is full rank, as mentioned above, we have appropriate pivot values in each of our dimensions, which tells us the system is linearly independent and therefore full rank.
+A is full rank. As mentioned above, we have appropriate pivot values in each of our dimensions, which tells us the system is full rank and therefore linearly independent.
 
 > Identify any linear dependencies among the rows or columns
 
@@ -276,11 +265,9 @@ If we saw any rows or columns that were strictly all zeroes, we could consider t
 
 > Given an $mxn$ matrix where $m>n$, determine the maximum and minimum possible rank, assuming that the matrix is non-zero.
 
-A matrix with more rows than columns indicate that we
-
 We cannot have a higher rank than we have dimensions, so the maximum rank is $r_{max}\le n$
 
-If the matrix is non-zero, the smallest it could possibly be is $1x1$. Therefore, rank must also be $r_{min}=1$.
+If the matrix is non-zero, the smallest it could possibly be is $1x1$. Therefore, minimum rank must also be $r_{min}=1$.
 
 > Prove that the rank of a matrix equals the dimension of its row space (or column space). Provide an example to illustrate the concept.
 
@@ -358,8 +345,8 @@ Detailed steps below. We will use the `pracma` and `matlib` packages to help wit
 
 Steps:
 1. Determine characteristic polynomial as $p_A(\lambda)=det(A-\lambda I_3)$
-2. Note the algebraic multiplicity of the characteristic polynomial
-3. Solve the roots of the polynomial for all values of $\lambda$
+2. Solve the roots of the polynomial for all values of $\lambda$
+3. Note the algebraic multiplicity of the characteristic polynomial
 4. Per value of $\lambda$, calculate $(A- \lambda I)\overrightarrow{v}=0$
 5. Row reduce each $(A- \lambda I)$ to help find the free variables
 6. Solve the row reduced matrix as a system of equations to determine an eigenvector by setting up $(A - \lambda I)\vec{v} = \vec{0}$
@@ -375,11 +362,11 @@ A <- matrix(c(3, 1, 2,
 # Step 1 characteristic polynomial
 A_cp <- charpoly(A)
 
-# Step 2 Algebraic multiplicity
-alpha <- length(unique(A_cp))
-
-# Step 3 Eigenvalues as roots of the CP
+# Step 2 Eigenvalues as roots of the CP
 lambdas <- roots(A_cp)
+
+# Step 3 Algebraic multiplicity
+alpha <- length(unique(lambdas))
 
 # Step 4 Calculate eigenvectors per eigen value
 # Note we are skipping to directly use the eigen() function for easier computation
@@ -394,65 +381,45 @@ eigen_vec <- eigen_A$vectors
 print(duplicated(eigen_A$values)) # No duplicates so linearly independent
 
 # Can validate by asserting the determinant of eigenspace is not zero
-print(det(eigen_vec)=0)
+eigen_det <- det(eigen_vec)
+
 
 # Step 9 The number of eigenvectors is our geometric multiplicity
 gamma <- ncol(eigen_vec)
+
+sprintf("Characteristic polynomial: %s", toString(A_cp))
+sprintf("Eigenvalues: %s", toString(lambdas))
+print("Eigenvectors:")
+print(eigen_vec)
+sprintf("Algebraic Multiplicity: %s", alpha)
+sprintf("Determinant of eigenspace: %s", eigen_det)
+sprintf("Geometric multiplicity: %s", gamma)
 ```
 
-First we perform row operations to get the row reduced echelon form of $A$
-
-$$
-\begin{align}
-
-\begin{bmatrix}
-3&1&2\\
-0&5&4\\
-0&0&2
-\end{bmatrix} \to -4R_1 + R_2
-
-\begin{bmatrix}3&1&2\\0&1&4\\0&0&2\end{bmatrix} \\
-
--R_2 + R_1 \to
-
-\begin{bmatrix}3&0&-2\\0&1&4\\0&0&2\end{bmatrix} \\
-
-R_1 + R_3 \to
-
-\begin{bmatrix}3&0&0\\0&1&4\\0&0&2\end{bmatrix} \\
-
-\frac{1}{3}R_1 \to
-
-\begin{bmatrix}1&0&0\\0&1&4\\0&0&2\end{bmatrix} \\
-
--2R_3 + R_2 \to
-
-\begin{bmatrix}1&0&0\\0&1&0\\0&0&2\end{bmatrix} \\
-
-\frac{1}{2}R_3 \to
-\begin{bmatrix}1&0&0\\0&1&0\\0&0&1\end{bmatrix}
-\end{align}
-$$
-
-In this case matrix $A$ can reduce to the identity matrix. We now determine the characteristic polynomial by calculating $p_A(x)=det(A-xI_3)$
-
-$$
-p_A(\lambda)=det(A-\lambda I_3) = det(\begin{bmatrix}1-\lambda&0&0\\0&1-\lambda&0\\0&0&1-\lambda\end{bmatrix})
-$$
-
-We have a diagonal matrix, so we can calculate the determinant as the product of its diagonal; $p_A(\lambda)=(1-x)(1-x)(1-x)$.
-
-This is also our characteristic polynomial, and as expected, the eigenvalues are 1, which we would expect of any identity matrix. Since the eigenvalue of $1$ appears three times in our characteristic polynomial, we can also state the algebraic multiplicity is three.
-
-Our eigenvectors can then be defined as $A\overrightarrow{x} = \lambda \overrightarrow{x}$. Since our matrix $A$ is an identity matrix, we can say $\overrightarrow{x} = \lambda \overrightarrow{x}$. Finally, since we have found $\lambda = 1$, we can say $\overrightarrow{x}=\overrightarrow{x}$, which is the same as saying that any vector of A is an eigenvector.
-
-Since any vector of A is an eigenvector, we can say that the eigenvectors are linearly independent.This means they span all of their dimensional space, which in this case is $\mathbb{C}^3$. Due to this, we can also say that the geometric multiplicity is also three, as by definition it is equivalent to the dimensions of eigenspace.
+With our results, we can confirm our eigenvectors are linearly independent, as evidenced by the non-zero determinant of eigenspace as well as the distinct eigenvectors themselves.
 
 ### Diagonalization of matrix
 
 > Determine if matrix $A$ can be diagonalized. If it can, find the diagonal matrix and the matrix of eigenvectors that diagonalizes $A$.
 
-As a square matrix, $A$ is considered diagonalizable if it is similar to a diagonal matrix. 
+As a square matrix, $A$ is considered diagonalizable if it is similar to a diagonal matrix. We would like to find some non-singular matrix $S$ that allows us to diagonlize $A$ such that $A_{diag} = S^{-1}A{S}$.
+
+In this case, we can use our already-calculated eigenvectors to compose matrix $S$.As we've concluded that our eigenvectors are independent, we can also state they are non-singular, and thus are appropriate to use for $S$.
+
+```{r}
+# Initiate S as matrix of eigenvectors
+S <- eigen_vec
+
+# Calculate diagonal matrix of A
+
+A_diag <- solve(S)%*%A%*%S
+
+print(A_diag)
+
+```
+
+As we can see, A is indeed diagonalizable, giving us a lovely diagonal matrix with our eigenvalues as the main diagonal. Beautiful!
+
 
 > Discuss the geometric interpretation of the eigenvectors and eigenvalues in the context of transformations. For instance, how does matrix stretch, shrink, or rotate vectors in $\mathbb{R}^3$?
 
@@ -600,9 +567,14 @@ for(n_pc in c(1, 5, 10, 20, 50)) {
 }
 ```
 
-Comparing this to the original image, we can see how the PCA helps us identify the most important pixel values to retain the most visual information possible.
+Comparing this to the original image, we can see how the PCA helps us identify the most important pixel values to retain the most visual information possible. Thanks Zorica!
 
 ```{r}
-print(image_vector_list[[1]])
+print(image_read('./lfw/Zorica_Radovic_0001.jpg'))
 ```
 
+## Conclusion
+
+In this paper we've demonstrated our ability to leverage linear algebra and the constructs of matrices to do manty important data related tasks, from image processing to eigenspace calculations. In reflection, I at first found much of these calculations to be tedious and opaque, and not very interesting at all. However, pursuing these exercises, developing an understanding of the relationships between these concepts, and applying them in a context that demosntrates real practical value, I started to find them as puzzles that require solving - a far more satisfying prospect.
+
+I now find a great deal of value in thinking of problems in the way linear algebra encourages; ignoring the "noise", focusing on the values that matter, and most important, the patterns we can recognize and reapply as we see them over and over again, and what that allows us to infer from them.
