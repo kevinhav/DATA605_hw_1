@@ -455,6 +455,7 @@ Detailed steps below. We will use the `pracma` and `matlib` packages to
 help with the computations.
 
 Steps:
+
 1. Determine characteristic polynomial as $p_A(\lambda)=det(A-\lambda I_3)$
 
 2. Solve the roots of the polynomial for all values of $\lambda$
@@ -676,7 +677,7 @@ component, we will reconstruct the images at a series of $n$ components.
 
 ```{r}
 #| label: rebuild-images
-# Function to reconstruct image from n principal components
+
 reconstruct_image <- function(pca_result, n_components) {
     # Get the eigenvectors for first n components
     eigenvec <- pca_result$pca$rotation[, 1:n_components, drop = FALSE]
