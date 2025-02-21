@@ -140,10 +140,12 @@ transformation upon.
 
 p_anim <- ggplot(transformed_vectors, aes(x=x, y=y)) +
     geom_point(size = 4, aes(color=frame), shape = "square") +
-    geom_hline(yintercept = -10:10, color = "lightgray", linetype = "dotted") +  # Grid lines
+    geom_hline(yintercept = -10:10, color = "lightgray", linetype = "dotted") +  
     geom_vline(xintercept = -10:10, color = "lightgray", linetype = "dotted") +  
-    geom_hline(yintercept = 0, color = "black", linetype = "solid", linewidth = 1) +  # X-axis
-    geom_vline(xintercept = 0, color = "black", linetype = "solid", linewidth = 1) +  # Y-axis
+    geom_hline(yintercept = 0, color = "black", linetype = "solid",
+               linewidth = 1) +  # X-axis
+    geom_vline(xintercept = 0, color = "black", linetype = "solid",
+               linewidth = 1) +  # Y-axis
     scale_x_continuous(breaks = -10:10) + 
     scale_y_continuous(breaks = -10:10) +
     coord_cartesian(xlim = c(-10, 10), ylim = c(-10, 10)) +
@@ -277,8 +279,12 @@ compressed_images <- list()
 
 # Loop through k values to create compressed images
 for(k in k_values) {
-    compress_matrix <- svd_matrix$u[, 1:k] %*% diag(svd_matrix$d[1:k]) %*% t(svd_matrix$v[, 1:k])
-    compress_matrix_3d <- array(compress_matrix, dim = c(dim(compress_matrix)[1], dim(compress_matrix)[2], 3))
+    compress_matrix <- (svd_matrix$u[, 1:k] %*%
+                          diag(svd_matrix$d[1:k]) %*%
+                          t(svd_matrix$v[, 1:k]))
+    compress_matrix_3d <- array(compress_matrix,
+                                dim = c(dim(compress_matrix)[1],
+                                        dim(compress_matrix)[2], 3))
     img <- image_read(compress_matrix_3d)
     img <- image_annotate(img, paste("k =", k), size = 30, color = "red")
     compressed_images[[length(compressed_images) + 1]] <- img
@@ -494,7 +500,7 @@ alpha <- length(unique(lambdas))
 print(alpha)
 
 # Step 4 Calculate eigenvectors per eigen value
-# Note we are skipping to directly use the eigen() function for easier computation
+# Note we directly use the eigen() function for easier computation
 # but we can easily confirm we have the same eigenvalues
 eigen_A <- eigen(A)
 print(eigen_A$values) # 5, 3, and 2, same as our polynomial roots
